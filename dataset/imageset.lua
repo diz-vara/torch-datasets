@@ -35,8 +35,8 @@ function ImageSet.pipe(opts)
     table.insert(p,pipe.image_loader)
     if do_yuv then
         table.insert(p,pipe.rgb2yuv)
-    end
-    if do_gray then
+    --end
+    elseif do_gray then
         table.insert(p,pipe.rgb2gray)
     end
     if do_lcn then
@@ -96,8 +96,8 @@ function ImageSet.dataset(opts)
     table.insert(p,pipe.image_loader)
     if do_yuv then
         table.insert(p,pipe.rgb2yuv)
-    end
-    if do_gray then
+    --end
+    elseif do_gray then
         table.insert(p,pipe.rgb2gray)
     end
     if do_lcn then
