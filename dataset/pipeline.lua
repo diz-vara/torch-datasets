@@ -1,4 +1,4 @@
-require 'fs'
+fs = require 'luarocks/fs'
 require 'paths'
 require 'image'
 require 'pprint'
@@ -122,7 +122,7 @@ end
 --      => { { filename = 'image_1.png', path = 'data/image_1.png' } ... }
 function pipe.file_source(dir, p, random, loop)
   if random == nil then random = false end
-  local fdir = fs.readdir(dir)
+  local fdir = fs.list_dir(dir)
   local myseq
   if loop and random then
      myseq = seq.mapcat(seq.shuffle, seq.repeat_val(fdir))
