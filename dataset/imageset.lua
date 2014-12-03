@@ -4,7 +4,8 @@ require 'dataset/SimpleDataset'
 
 local arg = require 'util/arg'
 
-ImageSet = {}
+local ImageSet = {version=1}
+
 function ImageSet.pipe(opts)
 
     opts = opts or {}
@@ -84,7 +85,7 @@ function ImageSet.dataset(opts)
 
     local data = {}
     local path = {}
-    local class
+    local class = {}
 
     if do_yuv and do_gray then
         error('I can not do YUV and Grayscale conversion at the same time')
@@ -108,14 +109,31 @@ function ImageSet.dataset(opts)
         error('label file not found : ' .. label_file)
     end
 
-    -- load images into memory
-    local datapipe = pipe.pipeline(pipe.image_dir_source(dir), unpack(p))
-    for sample in datapipe do
-        table.insert(data,sample.data)
-        table.insert(path,sample.path)
-        io.write(string.format('\r %d %s',#data, sample.path))
-        io.flush()
-    end
+	ld = fs.list_dir(dir);
+	
+	if fs.is_dir(dir .. '/' .. ld[1]) then
+		for k,d in pairs (ld) do
+			-- load images into memory
+			subdir = dir .. '/' .. d;
+			local datapipe = pipe.pipeline(pipe.image_dir_source(subdir), unpack(p))
+			for sample in datapipe do
+				table.insert(data,sample.data)
+				table.insert(path,sample.path)
+				table.insert(class,d)
+				io.write(string.format('\r %d %s %s',#data, d, sample.path))
+				io.flush()
+			end
+		end
+	else
+		-- load images into memory
+		local datapipe = pipe.pipeline(pipe.image_dir_source(dir), unpack(p))
+		for sample in datapipe do
+			table.insert(data,sample.data)
+			table.insert(path,sample.path)
+			io.write(string.format('\r %d %s',#data, sample.path))
+			io.flush()
+		end
+	end
     io.write('\n')
     print('Loaded ' .. #data .. ' samples')
 
@@ -155,3 +173,4 @@ function ImageSet.dataset(opts)
     return dataset, sampler
 end
 
+return ImageSet

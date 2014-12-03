@@ -131,3 +131,4 @@ function dataset.zoomer(start, dz)
    end
 end
 
+return dataset
