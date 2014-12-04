@@ -6,23 +6,32 @@ local SimpleDataset = torch.class('dataset.SimpleDataset')
 
 function SimpleDataset:__init(data_table,metadata_table)
 
-	metadata_table = metadata_table or {}
+        metadata_table = metadata_table or {}
 
-	self.dataset = data_table
-	self.metadata = metadata_table
+        self.dataset = data_table
+        self.metadata = metadata_table
 
-	if not self.dataset.data then
-		error('data_table does not contain "data" field')
-	end
+        if not self.dataset.data then
+               error('data_table does not contain "data" field')
+        end
+end
+
+function SimpleDataset:__len(o)
+        local data = self.dataset.data
+        if type(data) == 'table' then
+               return #data
+        else
+               return data:size(1)
+        end
 end
 
 function SimpleDataset:size()
-	local data = self.dataset.data
-	if type(data) == 'table' then
-		return #data
-	else
-		return data:size(1)
-	end
+        local data = self.dataset.data
+        if type(data) == 'table' then
+               return #data
+        else
+               return data:size(1)
+        end
 end
 
 -- Returns the specified sample (a table) by index.
