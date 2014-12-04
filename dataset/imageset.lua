@@ -44,7 +44,10 @@ function ImageSet.pipe(opts)
         table.insert(p,pipe.lcn())
     end
     if patch_height > 0 and patch_width > 0 then
+               print("patch size=" .. patch_width .. " x " .. patch_height);
         table.insert(p,pipe.patch_sampler(patch_width,patch_height))
+        else
+               print("ZERO PATCH SIZE")
     end
 
     if label_file and not paths.filep(label_file) then
@@ -85,7 +88,8 @@ function ImageSet.dataset(opts)
 
     local data = {}
     local path = {}
-    local class = {}
+    local classes = {}
+    local labels = {}
 
     if do_yuv and do_gray then
         error('I can not do YUV and Grayscale conversion at the same time')
@@ -109,31 +113,34 @@ function ImageSet.dataset(opts)
         error('label file not found : ' .. label_file)
     end
 
-	ld = fs.list_dir(dir);
-	
-	if fs.is_dir(dir .. '/' .. ld[1]) then
-		for k,d in pairs (ld) do
-			-- load images into memory
-			subdir = dir .. '/' .. d;
-			local datapipe = pipe.pipeline(pipe.image_dir_source(subdir), unpack(p))
-			for sample in datapipe do
-				table.insert(data,sample.data)
-				table.insert(path,sample.path)
-				table.insert(class,d)
-				io.write(string.format('\r %d %s %s',#data, d, sample.path))
-				io.flush()
-			end
-		end
-	else
-		-- load images into memory
-		local datapipe = pipe.pipeline(pipe.image_dir_source(dir), unpack(p))
-		for sample in datapipe do
-			table.insert(data,sample.data)
-			table.insert(path,sample.path)
-			io.write(string.format('\r %d %s',#data, sample.path))
-			io.flush()
-		end
-	end
+        ld = fs.list_dir(dir);
+        
+        if fs.is_dir(dir .. '/' .. ld[1]) then
+               for k,d in pairs (ld) do
+					   table.insert(classes,d)
+					   io.write(string.format('%5d\r%-10s ',#data, d))
+					   io.flush()
+                      -- load images into memory
+                      subdir = dir .. '/' .. d;
+                      local datapipe = pipe.pipeline(pipe.image_dir_source(subdir), unpack(p))
+                      for sample in datapipe do
+                             table.insert(data,sample.data)
+                             table.insert(path,sample.path)
+                             table.insert(labels,d)
+                      end
+               end
+			   io.write(string.format('%5d\r',#data))
+			   io.flush()
+        else
+               -- load images into memory
+               local datapipe = pipe.pipeline(pipe.image_dir_source(dir), unpack(p))
+               for sample in datapipe do
+                      table.insert(data,sample.data)
+                      table.insert(path,sample.path)
+                      io.write(string.format('\r %d %s',#data, sample.path))
+                      io.flush()
+               end
+        end
     io.write('\n')
     print('Loaded ' .. #data .. ' samples')
 
@@ -150,8 +157,8 @@ function ImageSet.dataset(opts)
         print('Loaded labels')
     end
 
-    local data_table = {data = data, path=path, classes = class}
-    local meta_data = {name = name}
+    local data_table = {data = data, path=path, labels = labels}
+    local meta_data = {name = name, classes = classes}
 
     local dataset = dataset.SimpleDataset(data_table,meta_data)
 
