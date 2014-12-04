@@ -108,6 +108,11 @@ function ImageSet.dataset(opts)
     if do_lcn then
         table.insert(p,pipe.lcn())
     end
+    if patch_width > 0 and patch_height > 0 then
+		print ("will resample to " .. patch_width); 
+        table.insert(p,pipe.line({pipe.patch_sampler(patch_width,patch_height)}))
+	end
+	
 
     if label_file and not paths.filep(label_file) then
         error('label file not found : ' .. label_file)
@@ -162,9 +167,13 @@ function ImageSet.dataset(opts)
 
     local dataset = dataset.SimpleDataset(data_table,meta_data)
 
+	
     local postpipe = nil
     if patch_width > 0 and patch_height > 0 then
+		print ("will resample to " .. patch_width); 
         postpipe = pipe.line({pipe.patch_sampler(patch_width,patch_height)})
+	else
+		print("postpipe=nil");
     end
     local sampler = dataset:sampler({shuffled = true, pipeline = postpipe})
 
